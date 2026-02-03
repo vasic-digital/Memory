@@ -461,6 +461,24 @@ func TestInMemoryStore_List(t *testing.T) {
 			opts:     nil,
 			expected: 0,
 		},
+		{
+			name:     "EmptyScopeWithOptsScope",
+			scope:    "",
+			opts:     &ListOptions{Scope: ScopeUser},
+			expected: 5,
+		},
+		{
+			name:     "EmptyScopeWithOptsScopeNoMatch",
+			scope:    "",
+			opts:     &ListOptions{Scope: ScopeSession},
+			expected: 0,
+		},
+		{
+			name:     "MatchingScopeWithDifferentOptsScope",
+			scope:    ScopeUser,
+			opts:     &ListOptions{Scope: ScopeGlobal},
+			expected: 0,
+		},
 	}
 
 	for _, tt := range tests {

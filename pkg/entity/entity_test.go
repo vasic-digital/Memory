@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -241,4 +243,225 @@ func TestPatternExtractor_CustomPatterns(t *testing.T) {
 
 func TestPatternExtractor_ImplementsExtractor(t *testing.T) {
 	var _ Extractor = (*PatternExtractor)(nil)
+}
+
+// --- Additional coverage tests ---
+
+func TestPatternExtractor_Extract_EmptyMatches(t *testing.T) {
+	pe := NewPatternExtractor()
+	// Text that matches pattern but with empty capture group
+	pe.WithEntityPattern("empty", "empty", `()`)
+
+	entities, _, err := pe.Extract("some text")
+	require.NoError(t, err)
+	// Should not include empty entities
+	for _, e := range entities {
+		assert.NotEmpty(t, e.Name)
+	}
+}
+
+func TestPatternExtractor_Extract_WhitespaceOnlyMatch(t *testing.T) {
+	pe := NewPatternExtractor()
+	// Add pattern that might match whitespace
+	pe.WithEntityPattern("space", "space", `(\s+)`)
+
+	entities, _, err := pe.Extract("hello   world")
+	require.NoError(t, err)
+	// Should not include whitespace-only entities
+	for _, e := range entities {
+		assert.NotEmpty(t, strings.TrimSpace(e.Name))
+	}
+}
+
+func TestPatternExtractor_Extract_RelationEmptySubject(t *testing.T) {
+	pe := &PatternExtractor{
+		entityPatterns:   defaultEntityPatterns(),
+		relationPatterns: []relationPattern{},
+	}
+	// Add pattern that might match with empty subject
+	pe.WithRelationPattern("test", "test_pred", `()\s+is\s+(\w+)`)
+
+	_, relations, err := pe.Extract(" is thing")
+	require.NoError(t, err)
+	// Should not include relations with empty subject
+	for _, r := range relations {
+		assert.NotEmpty(t, r.Subject)
+	}
+}
+
+func TestPatternExtractor_Extract_RelationEmptyObject(t *testing.T) {
+	pe := &PatternExtractor{
+		entityPatterns:   defaultEntityPatterns(),
+		relationPatterns: []relationPattern{},
+	}
+	// Add pattern that might match with empty object
+	pe.WithRelationPattern("test", "test_pred", `(\w+)\s+is\s+()`)
+
+	_, relations, err := pe.Extract("thing is ")
+	require.NoError(t, err)
+	// Should not include relations with empty object
+	for _, r := range relations {
+		assert.NotEmpty(t, r.Object)
+	}
+}
+
+func TestPatternExtractor_Extract_SingleCaptureGroup(t *testing.T) {
+	pe := &PatternExtractor{
+		entityPatterns:   defaultEntityPatterns(),
+		relationPatterns: []relationPattern{},
+	}
+	// Add relation pattern with only one capture group (invalid for relations)
+	pe.relationPatterns = append(pe.relationPatterns, relationPattern{
+		Name:       "single",
+		Predicate:  "single",
+		Expression: regexp.MustCompile(`(\w+)`),
+	})
+
+	_, relations, err := pe.Extract("word")
+	require.NoError(t, err)
+	// Should not include relations from single capture group
+	hasRelation := false
+	for _, r := range relations {
+		if r.Predicate == "single" {
+			hasRelation = true
+		}
+	}
+	assert.False(t, hasRelation)
+}
+
+func TestPatternExtractor_Extract_NoCaptureGroups(t *testing.T) {
+	pe := &PatternExtractor{
+		entityPatterns:   []Pattern{},
+		relationPatterns: []relationPattern{},
+	}
+	// Add pattern with no capture groups
+	pe.entityPatterns = append(pe.entityPatterns, Pattern{
+		Name:       "nocap",
+		Type:       "nocap",
+		Expression: regexp.MustCompile(`test`),
+	})
+
+	entities, _, err := pe.Extract("this is a test")
+	require.NoError(t, err)
+	// Should not include entities from no capture group pattern
+	hasNocap := false
+	for _, e := range entities {
+		if e.Type == "nocap" {
+			hasNocap = true
+		}
+	}
+	assert.False(t, hasNocap)
+}
+
+func TestPattern_Struct(t *testing.T) {
+	p := Pattern{
+		Name:       "test",
+		Type:       "test_type",
+		Expression: regexp.MustCompile(`(\w+)`),
+	}
+	assert.Equal(t, "test", p.Name)
+	assert.Equal(t, "test_type", p.Type)
+	assert.NotNil(t, p.Expression)
+}
+
+func TestRelationPattern_Struct(t *testing.T) {
+	rp := relationPattern{
+		Name:       "test",
+		Predicate:  "test_pred",
+		Expression: regexp.MustCompile(`(\w+)\s+to\s+(\w+)`),
+	}
+	assert.Equal(t, "test", rp.Name)
+	assert.Equal(t, "test_pred", rp.Predicate)
+	assert.NotNil(t, rp.Expression)
+}
+
+func TestDefaultEntityPatterns(t *testing.T) {
+	patterns := defaultEntityPatterns()
+	assert.Len(t, patterns, 3)
+
+	names := make([]string, len(patterns))
+	for i, p := range patterns {
+		names[i] = p.Name
+	}
+	assert.Contains(t, names, "email")
+	assert.Contains(t, names, "url")
+	assert.Contains(t, names, "capitalized_phrase")
+}
+
+func TestDefaultRelationPatterns(t *testing.T) {
+	patterns := defaultRelationPatterns()
+	assert.Len(t, patterns, 3)
+
+	predicates := make([]string, len(patterns))
+	for i, p := range patterns {
+		predicates[i] = p.Predicate
+	}
+	assert.Contains(t, predicates, "is_a")
+	assert.Contains(t, predicates, "has")
+	assert.Contains(t, predicates, "uses")
+}
+
+func TestPatternExtractor_ChainedWithMethods(t *testing.T) {
+	pe := NewPatternExtractor().
+		WithEntityPattern("custom1", "type1", `(CUSTOM1)`).
+		WithEntityPattern("custom2", "type2", `(CUSTOM2)`).
+		WithRelationPattern("rel1", "pred1", `(\w+)\s+does\s+(\w+)`).
+		WithRelationPattern("rel2", "pred2", `(\w+)\s+makes\s+(\w+)`)
+
+	// Verify all patterns were added
+	hasCustom1 := false
+	hasCustom2 := false
+	for _, p := range pe.entityPatterns {
+		if p.Name == "custom1" {
+			hasCustom1 = true
+		}
+		if p.Name == "custom2" {
+			hasCustom2 = true
+		}
+	}
+	assert.True(t, hasCustom1)
+	assert.True(t, hasCustom2)
+
+	hasRel1 := false
+	hasRel2 := false
+	for _, r := range pe.relationPatterns {
+		if r.Name == "rel1" {
+			hasRel1 = true
+		}
+		if r.Name == "rel2" {
+			hasRel2 = true
+		}
+	}
+	assert.True(t, hasRel1)
+	assert.True(t, hasRel2)
+}
+
+func TestPatternExtractor_Extract_ComplexText(t *testing.T) {
+	pe := NewPatternExtractor()
+
+	text := `
+Contact John Smith at john@example.com or visit https://example.com.
+The System has multiple Components and uses Docker containers.
+Go is a programming language that uses goroutines.
+`
+
+	entities, relations, err := pe.Extract(text)
+	require.NoError(t, err)
+
+	// Verify entities
+	entityNames := make([]string, len(entities))
+	for i, e := range entities {
+		entityNames[i] = e.Name
+	}
+	assert.Contains(t, entityNames, "john@example.com")
+	assert.Contains(t, entityNames, "https://example.com.")
+
+	// Verify relations
+	predicates := make([]string, len(relations))
+	for i, r := range relations {
+		predicates[i] = r.Predicate
+	}
+	assert.Contains(t, predicates, "has")
+	assert.Contains(t, predicates, "uses")
+	assert.Contains(t, predicates, "is_a")
 }

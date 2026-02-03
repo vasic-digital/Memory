@@ -242,12 +242,8 @@ func CalculateImportance(memory *store.Memory) float64 {
 		importance += 0.1
 	}
 
-	// Cap at 1.0
-	if importance > 1.0 {
-		importance = 1.0
-	}
-
-	// Round to avoid floating point drift
+	// Cap at 1.0 and round to avoid floating point drift
+	importance = math.Min(importance, 1.0)
 	return math.Round(importance*100) / 100
 }
 
@@ -305,10 +301,7 @@ func wordOverlapSimilarity(a, b string) float64 {
 		}
 	}
 
-	if union == 0 {
-		return 0.0
-	}
-
+	// Union is always > 0 at this point since we've checked for empty lists above
 	return float64(intersection) / float64(union)
 }
 
