@@ -1,0 +1,73 @@
+sequenceDiagram
+    participant App as Application
+    participant Mgr as mem0.Manager
+    participant BE as store.InMemoryStore
+
+    Note over App,BE: Memory Store Flow
+
+    rect rgb(230, 245, 255)
+        Note right of App: Add Memory
+        App->>Mgr: Add(ctx, &Memory{Content: "..."})
+        Mgr->>Mgr: Generate UUID (if ID empty)
+        Mgr->>Mgr: Assign DefaultScope (if scope empty)
+        Mgr->>Mgr: CalculateImportance(memory)
+        Mgr->>Mgr: Set CreatedAt, UpdatedAt
+        Mgr->>BE: Add(ctx, memory)
+        BE->>BE: Lock mutex
+        BE->>BE: Copy memory
+        BE->>BE: Store in map[id]*Memory
+        BE->>BE: Unlock mutex
+        BE-->>Mgr: nil
+        Mgr-->>App: nil
+    end
+
+    rect rgb(255, 245, 230)
+        Note right of App: Search Memory
+        App->>Mgr: Search(ctx, "query", opts)
+        Mgr->>BE: Search(ctx, "query", opts)
+        BE->>BE: RLock mutex
+        BE->>BE: For each memory:
+        Note right of BE: Filter by scope
+        Note right of BE: Filter by time range
+        Note right of BE: Calculate word-overlap score
+        Note right of BE: Filter by MinScore
+        BE->>BE: Sort by score descending
+        BE->>BE: Limit to TopK
+        BE->>BE: RUnlock mutex
+        BE-->>Mgr: []*Memory
+        Mgr->>Mgr: ApplyDecay to each result score
+        Note right of Mgr: score * exp(-rate * hours)
+        Mgr-->>App: []*Memory (with decayed scores)
+    end
+
+    rect rgb(230, 255, 230)
+        Note right of App: Retrieve by ID
+        App->>Mgr: Get(ctx, "mem-id")
+        Mgr->>BE: Get(ctx, "mem-id")
+        BE->>BE: RLock mutex
+        BE->>BE: Lookup in map
+        BE->>BE: Copy memory
+        BE->>BE: RUnlock mutex
+        BE-->>Mgr: *Memory (copy)
+        Mgr-->>App: *Memory
+    end
+
+    rect rgb(255, 230, 230)
+        Note right of App: Consolidate
+        App->>Mgr: Consolidate(ctx, ScopeUser)
+        Mgr->>Mgr: Lock mutex
+        Mgr->>Mgr: Check cooldown interval
+        Mgr->>BE: List(ctx, scope, opts)
+        BE-->>Mgr: []*Memory
+        loop For each pair (i, j)
+            Mgr->>Mgr: wordOverlapSimilarity(i.Content, j.Content)
+            alt similarity >= threshold
+                Mgr->>Mgr: mergeMemories(target=i, source=j)
+                Mgr->>BE: Update(ctx, target)
+                Mgr->>BE: Delete(ctx, source.ID)
+            end
+        end
+        Mgr->>Mgr: Update lastConsolidation
+        Mgr->>Mgr: Unlock mutex
+        Mgr-->>App: (count, nil)
+    end

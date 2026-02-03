@@ -1,0 +1,64 @@
+graph TD
+    subgraph "digital.vasic.memory"
+        subgraph "pkg/store"
+            MemoryStore["MemoryStore\n(interface)"]
+            Memory["Memory\n(struct)"]
+            Scope["Scope\n(type)"]
+            SearchOptions["SearchOptions\n(struct)"]
+            ListOptions["ListOptions\n(struct)"]
+            TimeRange["TimeRange\n(struct)"]
+            InMemoryStore["InMemoryStore\n(implementation)"]
+
+            MemoryStore --> Memory
+            MemoryStore --> SearchOptions
+            MemoryStore --> ListOptions
+            MemoryStore --> Scope
+            SearchOptions --> TimeRange
+            InMemoryStore -.->|implements| MemoryStore
+        end
+
+        subgraph "pkg/mem0"
+            Manager["Manager\n(decorator)"]
+            Config["Config\n(struct)"]
+            CalculateImportance["CalculateImportance\n(function)"]
+            ApplyDecay["ApplyDecay\n(function)"]
+
+            Manager --> Config
+            Manager --> CalculateImportance
+            Manager --> ApplyDecay
+            Manager -.->|implements| MemoryStore
+            Manager -->|wraps| MemoryStore
+        end
+
+        subgraph "pkg/entity"
+            Extractor["Extractor\n(interface)"]
+            Entity["Entity\n(struct)"]
+            Relation["Relation\n(struct)"]
+            Pattern["Pattern\n(struct)"]
+            PatternExtractor["PatternExtractor\n(implementation)"]
+
+            PatternExtractor -.->|implements| Extractor
+            PatternExtractor --> Pattern
+            Extractor --> Entity
+            Extractor --> Relation
+        end
+
+        subgraph "pkg/graph"
+            Graph["Graph\n(interface)"]
+            Node["Node\n(struct)"]
+            Edge["Edge\n(struct)"]
+            InMemoryGraph["InMemoryGraph\n(implementation)"]
+
+            InMemoryGraph -.->|implements| Graph
+            Graph --> Node
+            Graph --> Edge
+        end
+    end
+
+    style MemoryStore fill:#4A90D9,stroke:#2C5F8A,color:#fff
+    style Extractor fill:#4A90D9,stroke:#2C5F8A,color:#fff
+    style Graph fill:#4A90D9,stroke:#2C5F8A,color:#fff
+    style InMemoryStore fill:#7BC47F,stroke:#4A8B4E,color:#fff
+    style Manager fill:#7BC47F,stroke:#4A8B4E,color:#fff
+    style PatternExtractor fill:#7BC47F,stroke:#4A8B4E,color:#fff
+    style InMemoryGraph fill:#7BC47F,stroke:#4A8B4E,color:#fff

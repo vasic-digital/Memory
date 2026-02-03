@@ -1,0 +1,176 @@
+classDiagram
+    direction TB
+
+    class MemoryStore {
+        <<interface>>
+        +Add(ctx Context, memory *Memory) error
+        +Search(ctx Context, query string, opts *SearchOptions) []*Memory, error
+        +Get(ctx Context, id string) *Memory, error
+        +Update(ctx Context, memory *Memory) error
+        +Delete(ctx Context, id string) error
+        +List(ctx Context, scope Scope, opts *ListOptions) []*Memory, error
+    }
+
+    class Memory {
+        +ID string
+        +Content string
+        +Metadata map[string]any
+        +Scope Scope
+        +CreatedAt time.Time
+        +UpdatedAt time.Time
+        +Score float64
+        +Embedding []float32
+    }
+
+    class Scope {
+        <<type string>>
+        ScopeUser
+        ScopeSession
+        ScopeConversation
+        ScopeGlobal
+    }
+
+    class SearchOptions {
+        +TopK int
+        +MinScore float64
+        +Scope Scope
+        +TimeRange *TimeRange
+        +Filter map[string]any
+    }
+
+    class TimeRange {
+        +Start time.Time
+        +End time.Time
+    }
+
+    class ListOptions {
+        +Offset int
+        +Limit int
+        +OrderBy string
+        +Scope Scope
+    }
+
+    class InMemoryStore {
+        -memories map[string]*Memory
+        -mu sync.RWMutex
+        +NewInMemoryStore() *InMemoryStore
+        +Add(ctx Context, memory *Memory) error
+        +Search(ctx Context, query string, opts *SearchOptions) []*Memory, error
+        +Get(ctx Context, id string) *Memory, error
+        +Update(ctx Context, memory *Memory) error
+        +Delete(ctx Context, id string) error
+        +List(ctx Context, scope Scope, opts *ListOptions) []*Memory, error
+    }
+
+    class Config {
+        +DefaultScope Scope
+        +MaxMemories int
+        +ConsolidationInterval time.Duration
+        +DecayRate float64
+        +SimilarityThreshold float64
+    }
+
+    class Manager {
+        -backend MemoryStore
+        -config *Config
+        -mu sync.RWMutex
+        -lastConsolidation time.Time
+        +NewManager(backend MemoryStore, config *Config) *Manager
+        +Add(ctx Context, memory *Memory) error
+        +Search(ctx Context, query string, opts *SearchOptions) []*Memory, error
+        +Get(ctx Context, id string) *Memory, error
+        +Update(ctx Context, memory *Memory) error
+        +Delete(ctx Context, id string) error
+        +List(ctx Context, scope Scope, opts *ListOptions) []*Memory, error
+        +Consolidate(ctx Context, scope Scope) int, error
+    }
+
+    class Extractor {
+        <<interface>>
+        +Extract(text string) []Entity, []Relation, error
+    }
+
+    class Entity {
+        +Name string
+        +Type string
+        +Attributes map[string]any
+    }
+
+    class Relation {
+        +Subject string
+        +Predicate string
+        +Object string
+    }
+
+    class Pattern {
+        +Name string
+        +Type string
+        +Expression *regexp.Regexp
+    }
+
+    class PatternExtractor {
+        -entityPatterns []Pattern
+        -relationPatterns []relationPattern
+        +NewPatternExtractor() *PatternExtractor
+        +WithEntityPattern(name, entityType, pattern string) *PatternExtractor
+        +WithRelationPattern(name, predicate, pattern string) *PatternExtractor
+        +Extract(text string) []Entity, []Relation, error
+    }
+
+    class Graph {
+        <<interface>>
+        +AddNode(node Node) error
+        +AddEdge(edge Edge) error
+        +GetNode(id string) Node, error
+        +GetNeighbors(id string) []Node, error
+        +ShortestPath(from, to string) []string, error
+        +Subgraph(startID string, maxDepth int) []Node, []Edge, error
+        +Nodes() []Node
+        +Edges() []Edge
+    }
+
+    class Node {
+        +ID string
+        +Type string
+        +Properties map[string]any
+    }
+
+    class Edge {
+        +Source string
+        +Target string
+        +Relation string
+        +Weight float64
+    }
+
+    class InMemoryGraph {
+        -nodes map[string]Node
+        -edges []Edge
+        -adj map[string][]adjEntry
+        -mu sync.RWMutex
+        +NewInMemoryGraph() *InMemoryGraph
+        +AddNode(node Node) error
+        +AddEdge(edge Edge) error
+        +GetNode(id string) Node, error
+        +GetNeighbors(id string) []Node, error
+        +ShortestPath(from, to string) []string, error
+        +Subgraph(startID string, maxDepth int) []Node, []Edge, error
+        +Nodes() []Node
+        +Edges() []Edge
+    }
+
+    MemoryStore --> Memory : operates on
+    MemoryStore --> SearchOptions : uses
+    MemoryStore --> ListOptions : uses
+    MemoryStore --> Scope : filters by
+    SearchOptions --> TimeRange : contains
+    InMemoryStore ..|> MemoryStore : implements
+    Manager ..|> MemoryStore : implements
+    Manager --> MemoryStore : wraps backend
+    Manager --> Config : configured by
+    Extractor --> Entity : produces
+    Extractor --> Relation : produces
+    PatternExtractor ..|> Extractor : implements
+    PatternExtractor --> Pattern : uses
+    Graph --> Node : contains
+    Graph --> Edge : contains
+    InMemoryGraph ..|> Graph : implements
