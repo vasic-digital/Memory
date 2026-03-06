@@ -93,6 +93,8 @@ Key fields in `LeakReport`:
 | `GoroutineCount` | Current number of goroutines |
 | `GoroutineGrowthRate` | (current - initial) / initial |
 
-## Summary
+## Practice Exercise
 
-The `memory` package provides lightweight runtime monitoring. Use `LeakDetector` for sampling, `MemoryMonitor` for alerts, and the profiling helpers to capture pprof snapshots when issues are detected.
+1. Create a `LeakDetector` with a 1-second sample interval and 1.5x threshold. Allocate a growing slice in a loop. Check the report and verify `PotentialLeak` becomes true when heap growth exceeds the threshold.
+2. Set up a `MemoryMonitor` with an alert callback that records alerts to a slice. Simulate a goroutine leak by starting goroutines without stopping them. Verify the alert fires when goroutine growth exceeds 50%.
+3. Use `WriteHeapProfile` and `WriteGoroutineProfile` to capture profiles before and after a workload. Open them with `go tool pprof` and identify the allocation hot spots.

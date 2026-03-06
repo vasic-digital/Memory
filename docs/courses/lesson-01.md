@@ -87,6 +87,8 @@ page, err := s.List(ctx, store.ScopeUser, &store.ListOptions{
 })
 ```
 
-## Summary
+## Practice Exercise
 
-The `store` package defines a clean CRUD+search interface. `InMemoryStore` is the default implementation, suitable for development and testing. For production, implement `MemoryStore` against a persistent or vector database.
+1. Create an `InMemoryStore`, add 10 memories across different scopes (User, Session, Global). Search for a keyword and verify results are sorted by score. List memories filtered by scope and verify pagination.
+2. Add two memories with identical content but different scopes. Search for that content and verify both are returned. Delete one and verify only the other remains.
+3. Implement a custom `MemoryStore` that wraps `InMemoryStore` and logs every operation. Verify the logging wrapper can be used anywhere the `MemoryStore` interface is accepted.

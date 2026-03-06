@@ -82,6 +82,8 @@ nodes, edges, err := g.Subgraph("Alice", 3)
 // All nodes and edges reachable within 3 hops from Alice
 ```
 
-## Summary
+## Practice Exercise
 
-Combine `PatternExtractor` with `InMemoryGraph` to build knowledge graphs from unstructured text. Extend the default patterns with domain-specific regex for richer entity models.
+1. Use the default `PatternExtractor` to extract entities from the text: "Alice at alice@example.com uses Go and Python. Bob uses Python." Count the entities and relations found.
+2. Add custom patterns for hashtags (`#\w+`) and version numbers (`v\d+\.\d+\.\d+`). Extract from a sample changelog and verify the custom entities are detected.
+3. Build a graph from extracted relations, then find the shortest path between two entities. Create a subgraph of depth 2 from a starting node and verify the correct nodes and edges are included.

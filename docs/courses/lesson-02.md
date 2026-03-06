@@ -78,6 +78,8 @@ merged, err := mgr.Consolidate(ctx, store.ScopeUser)
 
 Consolidation computes Jaccard similarity between memory pairs. When two memories exceed the threshold, the shorter is absorbed: the longer content wins, metadata is merged, the higher score is kept, and the earlier creation time is preserved.
 
-## Summary
+## Practice Exercise
 
-The Mem0 Manager adds intelligent behavior on top of any memory store. Importance scoring surfaces relevant memories, decay lets old memories fade, and consolidation prevents duplication.
+1. Create a Manager with `DecayRate=0.1`. Add a memory, wait 1 second, then search. Compare the returned score against the original. Verify the decay formula: `score * exp(-0.1 * hours)`.
+2. Add 5 memories with varying content lengths and metadata. Verify that importance scoring assigns higher scores to longer content with metadata.
+3. Add two memories with overlapping content (>70% word overlap). Call `Consolidate` and verify only the longer memory survives with merged metadata and the earlier creation timestamp.
