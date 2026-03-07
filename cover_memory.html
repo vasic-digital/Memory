@@ -1,0 +1,394 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>memory: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">digital.vasic.memory/pkg/memory/leak_detector.go (97.1%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package memory
+
+import (
+        "context"
+        "fmt"
+        "os"
+        "runtime"
+        "runtime/pprof"
+        "sync"
+        "time"
+)
+
+type LeakDetector struct {
+        mu             sync.Mutex
+        wg             sync.WaitGroup
+        baselineStats  runtime.MemStats
+        samples        []runtime.MemStats
+        interval       time.Duration
+        thresholdRatio float64
+        stopCh         chan struct{}
+        running        bool
+}
+
+type LeakReport struct {
+        Timestamp           time.Time
+        HeapAlloc           uint64
+        HeapSys             uint64
+        HeapInUse           uint64
+        HeapObjects         uint64
+        StackInUse          uint64
+        GoroutineCount      int
+        GCCount             uint32
+        HeapGrowthRatio     float64
+        PotentialLeak       bool
+        GoroutineGrowthRate float64
+        InitialGoroutines   int
+}
+
+func NewLeakDetector(interval time.Duration, thresholdRatio float64) *LeakDetector <span class="cov7" title="19">{
+        return &amp;LeakDetector{
+                interval:       interval,
+                thresholdRatio: thresholdRatio,
+                samples:        make([]runtime.MemStats, 0),
+                stopCh:         make(chan struct{}),
+        }
+}</span>
+
+func (d *LeakDetector) Start(ctx context.Context) error <span class="cov6" title="16">{
+        d.mu.Lock()
+        defer d.mu.Unlock()
+
+        if d.running </span><span class="cov2" title="2">{
+                return fmt.Errorf("leak detector already running")
+        }</span>
+
+        <span class="cov6" title="14">runtime.ReadMemStats(&amp;d.baselineStats)
+        d.samples = append(d.samples, d.baselineStats)
+        d.running = true
+        d.stopCh = make(chan struct{})
+
+        d.wg.Add(1)
+        go func() </span><span class="cov6" title="14">{
+                defer d.wg.Done()
+                d.monitorLoop(ctx)
+        }</span>()
+
+        <span class="cov6" title="14">return nil</span>
+}
+
+func (d *LeakDetector) Stop() <span class="cov6" title="15">{
+        d.mu.Lock()
+        if !d.running </span><span class="cov1" title="1">{
+                d.mu.Unlock()
+                return
+        }</span>
+
+        <span class="cov6" title="14">close(d.stopCh)
+        d.running = false
+        d.mu.Unlock()
+
+        d.wg.Wait()</span>
+}
+
+func (d *LeakDetector) monitorLoop(ctx context.Context) <span class="cov6" title="14">{
+        ticker := time.NewTicker(d.interval)
+        defer ticker.Stop()
+
+        initialGoroutines := runtime.NumGoroutine()
+
+        for </span><span class="cov10" title="71">{
+                select </span>{
+                case &lt;-ctx.Done():<span class="cov2" title="2">
+                        return</span>
+                case &lt;-d.stopCh:<span class="cov6" title="12">
+                        return</span>
+                case &lt;-ticker.C:<span class="cov9" title="57">
+                        d.collectSample(initialGoroutines)</span>
+                }
+        }
+}
+
+func (d *LeakDetector) collectSample(initialGoroutines int) <span class="cov9" title="60">{
+        d.mu.Lock()
+        defer d.mu.Unlock()
+
+        var stats runtime.MemStats
+        runtime.ReadMemStats(&amp;stats)
+        d.samples = append(d.samples, stats)
+
+        if len(d.samples) &gt; 100 </span><span class="cov1" title="1">{
+                d.samples = d.samples[1:]
+        }</span>
+}
+
+func (d *LeakDetector) GetReport() LeakReport <span class="cov9" title="46">{
+        d.mu.Lock()
+        defer d.mu.Unlock()
+
+        var stats runtime.MemStats
+        runtime.ReadMemStats(&amp;stats)
+
+        initialGoroutines := runtime.NumGoroutine()
+        if len(d.samples) &gt; 0 </span><span class="cov8" title="44">{
+                initialGoroutines = int(d.samples[0].NumGC) + 1
+        }</span>
+
+        <span class="cov9" title="46">heapGrowthRatio := 0.0
+        if d.baselineStats.HeapAlloc &gt; 0 </span><span class="cov8" title="44">{
+                heapGrowthRatio = float64(stats.HeapAlloc) / float64(d.baselineStats.HeapAlloc)
+        }</span>
+
+        <span class="cov9" title="46">currentGoroutines := runtime.NumGoroutine()
+        goroutineGrowthRate := 0.0
+        if initialGoroutines &gt; 0 </span><span class="cov9" title="46">{
+                goroutineGrowthRate = float64(currentGoroutines-initialGoroutines) / float64(initialGoroutines)
+        }</span>
+
+        <span class="cov9" title="46">potentialLeak := heapGrowthRatio &gt; d.thresholdRatio || goroutineGrowthRate &gt; 0.5
+
+        return LeakReport{
+                Timestamp:           time.Now(),
+                HeapAlloc:           stats.HeapAlloc,
+                HeapSys:             stats.HeapSys,
+                HeapInUse:           stats.HeapInuse,
+                HeapObjects:         stats.HeapObjects,
+                StackInUse:          stats.StackInuse,
+                GoroutineCount:      currentGoroutines,
+                GCCount:             stats.NumGC,
+                HeapGrowthRatio:     heapGrowthRatio,
+                PotentialLeak:       potentialLeak,
+                GoroutineGrowthRate: goroutineGrowthRate,
+                InitialGoroutines:   initialGoroutines,
+        }</span>
+}
+
+func (d *LeakDetector) GetSamples() []runtime.MemStats <span class="cov5" title="10">{
+        d.mu.Lock()
+        defer d.mu.Unlock()
+
+        result := make([]runtime.MemStats, len(d.samples))
+        copy(result, d.samples)
+        return result
+}</span>
+
+func WriteHeapProfile(filename string) error <span class="cov3" title="4">{
+        f, err := os.Create(filename)
+        if err != nil </span><span class="cov2" title="2">{
+                return fmt.Errorf("could not create heap profile file: %w", err)
+        }</span>
+        <span class="cov2" title="2">defer f.Close()
+
+        runtime.GC()
+
+        if err := pprof.WriteHeapProfile(f); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("could not write heap profile: %w", err)
+        }</span>
+
+        <span class="cov2" title="2">return nil</span>
+}
+
+func WriteGoroutineProfile(filename string) error <span class="cov3" title="4">{
+        f, err := os.Create(filename)
+        if err != nil </span><span class="cov2" title="2">{
+                return fmt.Errorf("could not create goroutine profile file: %w", err)
+        }</span>
+        <span class="cov2" title="2">defer f.Close()
+
+        p := pprof.Lookup("goroutine")
+        if p == nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("goroutine profile not found")
+        }</span>
+
+        <span class="cov2" title="2">if err := p.WriteTo(f, 0); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("could not write goroutine profile: %w", err)
+        }</span>
+
+        <span class="cov2" title="2">return nil</span>
+}
+
+func ForceGC() <span class="cov1" title="1">{
+        runtime.GC()
+        runtime.GC()
+}</span>
+
+type MemoryMonitor struct {
+        detector      *LeakDetector
+        wg            sync.WaitGroup
+        reportCh      chan LeakReport
+        alertCallback func(LeakReport)
+}
+
+func NewMemoryMonitor(interval time.Duration, thresholdRatio float64) *MemoryMonitor <span class="cov5" title="9">{
+        return &amp;MemoryMonitor{
+                detector: NewLeakDetector(interval, thresholdRatio),
+                reportCh: make(chan LeakReport, 10),
+        }
+}</span>
+
+func (m *MemoryMonitor) SetAlertCallback(cb func(LeakReport)) <span class="cov2" title="2">{
+        m.alertCallback = cb
+}</span>
+
+func (m *MemoryMonitor) Start(ctx context.Context) error <span class="cov5" title="10">{
+        if err := m.detector.Start(ctx); err != nil </span><span class="cov1" title="1">{
+                return err
+        }</span>
+
+        <span class="cov5" title="9">m.wg.Add(1)
+        go func() </span><span class="cov5" title="9">{
+                defer m.wg.Done()
+                m.monitorReports(ctx)
+        }</span>()
+
+        <span class="cov5" title="9">return nil</span>
+}
+
+func (m *MemoryMonitor) Stop() <span class="cov5" title="9">{
+        m.detector.Stop()
+        m.wg.Wait()
+}</span>
+
+func (m *MemoryMonitor) monitorReports(ctx context.Context) <span class="cov5" title="9">{
+        ticker := time.NewTicker(m.detector.interval)
+        defer ticker.Stop()
+
+        for </span><span class="cov9" title="52">{
+                select </span>{
+                case &lt;-ctx.Done():<span class="cov1" title="1">
+                        return</span>
+                case &lt;-m.detector.stopCh:<span class="cov5" title="8">
+                        return</span>
+                case &lt;-ticker.C:<span class="cov8" title="43">
+                        report := m.detector.GetReport()
+                        select </span>{
+                        case m.reportCh &lt;- report:<span class="cov8" title="33"></span>
+                        default:<span class="cov5" title="10"></span>
+                        }
+
+                        <span class="cov8" title="43">if report.PotentialLeak &amp;&amp; m.alertCallback != nil </span><span class="cov6" title="15">{
+                                m.alertCallback(report)
+                        }</span>
+                }
+        }
+}
+
+func (m *MemoryMonitor) Reports() &lt;-chan LeakReport <span class="cov6" title="12">{
+        return m.reportCh
+}</span>
+
+func GetCurrentMemoryUsage() string <span class="cov1" title="1">{
+        var stats runtime.MemStats
+        runtime.ReadMemStats(&amp;stats)
+
+        return fmt.Sprintf(
+                "HeapAlloc: %d MB, HeapSys: %d MB, HeapInuse: %d MB, HeapObjects: %d, Goroutines: %d",
+                stats.HeapAlloc/1024/1024,
+                stats.HeapSys/1024/1024,
+                stats.HeapInuse/1024/1024,
+                stats.HeapObjects,
+                runtime.NumGoroutine(),
+        )
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
