@@ -17,7 +17,7 @@ import (
 
 func TestConcurrentMemoryAddAndSearch(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	s := store.NewInMemoryStore()
@@ -61,7 +61,7 @@ func TestConcurrentMemoryAddAndSearch(t *testing.T) {
 
 func TestConcurrentManagerOperations(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	backend := store.NewInMemoryStore()
@@ -97,7 +97,7 @@ func TestConcurrentManagerOperations(t *testing.T) {
 
 func TestConcurrentGraphOperations(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	g := graph.NewInMemoryGraph()
@@ -146,7 +146,7 @@ func TestConcurrentGraphOperations(t *testing.T) {
 
 func TestConcurrentEntityExtraction(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	extractor := entity.NewPatternExtractor()
@@ -174,7 +174,7 @@ func TestConcurrentEntityExtraction(t *testing.T) {
 
 func TestConcurrentSubgraphExtraction(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	g := graph.NewInMemoryGraph()
@@ -215,7 +215,7 @@ func TestConcurrentSubgraphExtraction(t *testing.T) {
 
 func TestConcurrentMemoryUpdateAndDelete(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	s := store.NewInMemoryStore()
