@@ -16,7 +16,7 @@ import (
 
 func TestFullMemoryWorkflowE2E(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	backend := store.NewInMemoryStore()
@@ -64,7 +64,7 @@ func TestFullMemoryWorkflowE2E(t *testing.T) {
 
 func TestEntityExtractionPipelineE2E(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	text := "John Smith works at Acme Corp. Jane Doe uses Python. " +
@@ -95,7 +95,7 @@ func TestEntityExtractionPipelineE2E(t *testing.T) {
 
 func TestKnowledgeGraphE2E(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	g := graph.NewInMemoryGraph()
@@ -149,7 +149,7 @@ func TestKnowledgeGraphE2E(t *testing.T) {
 
 func TestScopedMemorySearchE2E(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	s := store.NewInMemoryStore()
@@ -181,7 +181,7 @@ func TestScopedMemorySearchE2E(t *testing.T) {
 
 func TestTimeRangeSearchE2E(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	s := store.NewInMemoryStore()
@@ -218,7 +218,7 @@ func TestTimeRangeSearchE2E(t *testing.T) {
 
 func TestCustomEntityPatternsE2E(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	extractor := entity.NewPatternExtractor().

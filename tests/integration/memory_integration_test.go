@@ -16,7 +16,7 @@ import (
 
 func TestStoreAndSearchIntegration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	s := store.NewInMemoryStore()
@@ -54,7 +54,7 @@ func TestStoreAndSearchIntegration(t *testing.T) {
 
 func TestMem0ManagerIntegration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	backend := store.NewInMemoryStore()
@@ -78,7 +78,7 @@ func TestMem0ManagerIntegration(t *testing.T) {
 
 func TestEntityExtractionToGraphIntegration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	extractor := entity.NewPatternExtractor()
@@ -125,7 +125,7 @@ func TestEntityExtractionToGraphIntegration(t *testing.T) {
 
 func TestGraphTraversalIntegration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	g := graph.NewInMemoryGraph()
@@ -151,7 +151,7 @@ func TestGraphTraversalIntegration(t *testing.T) {
 
 func TestMemoryDecayIntegration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	now := time.Now()
@@ -177,7 +177,7 @@ func TestMemoryDecayIntegration(t *testing.T) {
 
 func TestMemoryConsolidationIntegration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	backend := store.NewInMemoryStore()

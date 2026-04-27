@@ -16,7 +16,7 @@ import (
 
 func TestGetNonExistentMemory(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	s := store.NewInMemoryStore()
@@ -29,7 +29,7 @@ func TestGetNonExistentMemory(t *testing.T) {
 
 func TestDeleteNonExistentMemory(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	s := store.NewInMemoryStore()
@@ -42,7 +42,7 @@ func TestDeleteNonExistentMemory(t *testing.T) {
 
 func TestUpdateNonExistentMemory(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	s := store.NewInMemoryStore()
@@ -58,7 +58,7 @@ func TestUpdateNonExistentMemory(t *testing.T) {
 
 func TestEmptyGraphNode(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	g := graph.NewInMemoryGraph()
@@ -69,7 +69,7 @@ func TestEmptyGraphNode(t *testing.T) {
 
 func TestDuplicateGraphNode(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	g := graph.NewInMemoryGraph()
@@ -82,7 +82,7 @@ func TestDuplicateGraphNode(t *testing.T) {
 
 func TestEdgeWithMissingNodes(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	g := graph.NewInMemoryGraph()
@@ -99,7 +99,7 @@ func TestEdgeWithMissingNodes(t *testing.T) {
 
 func TestShortestPathNoRoute(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	g := graph.NewInMemoryGraph()
@@ -114,7 +114,7 @@ func TestShortestPathNoRoute(t *testing.T) {
 
 func TestShortestPathNonExistentNode(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	g := graph.NewInMemoryGraph()
@@ -129,7 +129,7 @@ func TestShortestPathNonExistentNode(t *testing.T) {
 
 func TestLargeMemoryContent(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	s := store.NewInMemoryStore()
@@ -149,7 +149,7 @@ func TestLargeMemoryContent(t *testing.T) {
 
 func TestEntityExtractionEmptyInput(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	extractor := entity.NewPatternExtractor()
@@ -167,7 +167,7 @@ func TestEntityExtractionEmptyInput(t *testing.T) {
 
 func TestImportanceCalculationEdgeCases(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	// Empty memory
@@ -189,7 +189,7 @@ func TestImportanceCalculationEdgeCases(t *testing.T) {
 
 func TestSubgraphNonExistentNode(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	g := graph.NewInMemoryGraph()
