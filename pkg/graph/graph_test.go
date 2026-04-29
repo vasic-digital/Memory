@@ -485,6 +485,7 @@ func TestInMemoryGraph_Edges(t *testing.T) {
 // --- Concurrency ---
 
 func TestInMemoryGraph_ConcurrentAccess(t *testing.T) {
+	// bluff-scan: no-assert-ok (concurrency test — go test -race catches data races; absence of panic == correctness)
 	g := NewInMemoryGraph()
 
 	// Pre-create nodes
