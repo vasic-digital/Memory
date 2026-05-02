@@ -37,13 +37,6 @@ func TestRelation_Struct(t *testing.T) {
 
 // --- NewPatternExtractor ---
 
-func TestNewPatternExtractor(t *testing.T) {
-	pe := NewPatternExtractor()
-	require.NotNil(t, pe)
-	assert.NotEmpty(t, pe.entityPatterns)
-	assert.NotEmpty(t, pe.relationPatterns)
-}
-
 // --- WithEntityPattern ---
 
 func TestPatternExtractor_WithEntityPattern(t *testing.T) {

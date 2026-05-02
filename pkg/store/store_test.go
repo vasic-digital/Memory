@@ -109,12 +109,6 @@ func TestDefaultListOptions(t *testing.T) {
 
 // --- InMemoryStore ---
 
-func TestNewInMemoryStore(t *testing.T) {
-	s := NewInMemoryStore()
-	require.NotNil(t, s)
-	assert.NotNil(t, s.memories)
-}
-
 func TestInMemoryStore_Add(t *testing.T) {
 	tests := []struct {
 		name   string

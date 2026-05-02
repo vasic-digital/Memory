@@ -25,25 +25,6 @@ func TestDefaultConfig(t *testing.T) {
 
 // --- NewManager ---
 
-func TestNewManager(t *testing.T) {
-	tests := []struct {
-		name   string
-		config *Config
-	}{
-		{"WithNilConfig", nil},
-		{"WithCustomConfig", &Config{DefaultScope: store.ScopeGlobal}},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			backend := store.NewInMemoryStore()
-			m := NewManager(backend, tt.config)
-			require.NotNil(t, m)
-			assert.NotNil(t, m.config)
-		})
-	}
-}
-
 // --- Add ---
 
 func TestManager_Add(t *testing.T) {

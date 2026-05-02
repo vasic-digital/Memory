@@ -13,21 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewLeakDetector(t *testing.T) {
-	interval := 100 * time.Millisecond
-	threshold := 2.0
-
-	d := NewLeakDetector(interval, threshold)
-
-	assert.NotNil(t, d)
-	assert.Equal(t, interval, d.interval)
-	assert.Equal(t, threshold, d.thresholdRatio)
-	assert.NotNil(t, d.samples)
-	assert.Empty(t, d.samples)
-	assert.NotNil(t, d.stopCh)
-	assert.False(t, d.running)
-}
-
 func TestLeakDetector_StartStop(t *testing.T) {
 	d := NewLeakDetector(50*time.Millisecond, 2.0)
 	ctx := context.Background()

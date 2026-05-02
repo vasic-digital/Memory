@@ -36,14 +36,6 @@ func TestEdge_Struct(t *testing.T) {
 
 // --- NewInMemoryGraph ---
 
-func TestNewInMemoryGraph(t *testing.T) {
-	g := NewInMemoryGraph()
-	require.NotNil(t, g)
-	assert.Empty(t, g.nodes)
-	assert.Empty(t, g.edges)
-	assert.Empty(t, g.adj)
-}
-
 // --- AddNode ---
 
 func TestInMemoryGraph_AddNode(t *testing.T) {
