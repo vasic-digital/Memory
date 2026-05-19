@@ -1,0 +1,49 @@
+{
+  "memories": [
+    {
+      "locale": "en",
+      "scope": "user",
+      "content": "User prefers dark mode and concise answers",
+      "metadata": {
+        "source": "preferences",
+        "language": "English"
+      }
+    },
+    {
+      "locale": "sr-Latn",
+      "scope": "user",
+      "content": "Korisnik preferira tamni režim i kratke odgovore",
+      "metadata": {
+        "izvor": "podešavanja",
+        "jezik": "Srpski (latinica)"
+      }
+    },
+    {
+      "locale": "sr-Cyrl",
+      "scope": "session",
+      "content": "Корисник воли да добије сажете одговоре на свом матерњем језику",
+      "metadata": {
+        "извор": "разговор",
+        "језик": "Српски (ћирилица)"
+      }
+    },
+    {
+      "locale": "ja",
+      "scope": "conversation",
+      "content": "ユーザーは簡潔な回答とダークモードを好む",
+      "metadata": {
+        "ソース": "設定",
+        "言語": "日本語"
+      }
+    },
+    {
+      "locale": "de",
+      "scope": "global",
+      "content": "Der Benutzer bevorzugt den dunklen Modus und prägnante Antworten",
+      "metadata": {
+        "quelle": "einstellungen",
+        "sprache": "Deutsch"
+      }
+    }
+  ]
+}

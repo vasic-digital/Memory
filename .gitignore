@@ -1,9 +1,16 @@
-# Binaries
+# Binaries / build artefacts (CONST-053)
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+*.a
+*.o
+/bin/
+/build/
+/dist/
+/out/
+target/
 
 # Test binary
 *.test
@@ -18,6 +25,7 @@ go.work.sum
 # IDE
 .idea/
 .vscode/
+.history/
 *.swp
 *.swo
 *~
@@ -26,11 +34,43 @@ go.work.sum
 .DS_Store
 Thumbs.db
 
-# Coverage
+# Coverage / reports / logs
 coverage.html
 coverage.out
+*.cover.html
+htmlcov/
+*.log
 
-# Environment files
+# Cache (CONST-053)
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+.cache/
+.gradle/
+.terraform/
+
+# Temp files
+*.tmp
+*.orig
+*.rej
+
+# Sensitive-data files (CONST-053 + CONST-042)
 .env
 .env.local
 .env.*.local
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+id_rsa*
+id_ed25519*
+.netrc
+secrets/
+api_keys.sh
+
+# Round-247 build artefact (challenges runner is an emit-target, not a binary)
+/challenges/runner/runner
+/challenges/runner/main

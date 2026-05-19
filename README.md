@@ -268,6 +268,24 @@ The Memory module is the primary memory system for HelixAgent:
 
 The internal adapter at `internal/adapters/memory/` bridges these generic types to HelixAgent-specific interfaces. HelixMemory (the higher-level cognitive memory engine) orchestrates this module alongside Cognee, Letta, and Graphiti.
 
+## Anti-bluff guarantees (round-247)
+
+Per Article XI §11.9 / CONST-035 / CONST-050(B), every PASS in this module carries positive runtime evidence — no metadata-only / configuration-only / absence-of-error PASS is accepted as proof. Round-247 enriches the suite with:
+
+- **Deep-doc test coverage ledger** at `docs/test-coverage.md` cross-referencing every exported symbol in `pkg/{store,mem0,entity,graph,memfd,memory}` to the unit-test source that exercises it.
+- **Bilingual fixtures** at `tests/fixtures/i18n/payloads.json` covering at minimum `en`, `sr-Latn`, `sr-Cyrl`, `ja`, and `de` — exercising UTF-8 round-trip for Content and Metadata across all four `Scope` values.
+- **Real-pipeline runner** at `challenges/runner/main.go` that loads the fixture, drives `mem0.Manager.Add` → `Get` → `Search` → backend `List` against a real `store.InMemoryStore`, and asserts byte-exact Content/Metadata fidelity plus per-scope isolation. No mocks, no stubs.
+- **Paired-mutation Challenge** at `challenges/scripts/memory_describe_challenge.sh`. Run without flags it asserts ledger ↔ source congruence + runs the bilingual runner and exits 0. Run with `--anti-bluff-mutate` it plants a deliberate symbol-rename in a tmp copy of the ledger and asserts the gate FAILS with exit 99 — proving the gate actually catches drift rather than rubber-stamping it.
+
+Acceptance:
+```bash
+go test -count=1 -race ./...
+bash challenges/scripts/memory_describe_challenge.sh
+bash challenges/scripts/memory_describe_challenge.sh --anti-bluff-mutate  # exits 99
+```
+
+The four-package surface (`store`, `mem0`, `entity`, `graph`) is augmented by `memfd` (PSC ring buffer) and `memory` (runtime leak detection + profiling) — see `docs/test-coverage.md` for the full per-symbol mapping.
+
 ## License
 
 Proprietary.
