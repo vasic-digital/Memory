@@ -46,7 +46,34 @@ func TestLeakDetector_ConcurrentStartStop(t *testing.T) {
 }
 
 func TestLeakDetector_FalsePositive_HeapOnly(t *testing.T) {
-	t.Parallel()
+	// NOTE: this test deliberately does NOT call t.Parallel().
+	//
+	// HeapGrowthRatio = live process HeapAlloc / baseline process HeapAlloc, and
+	// runtime.MemStats.HeapAlloc is a *process-global* measurement. When this
+	// test ran in parallel (t.Parallel) with the sibling edge tests that
+	// intentionally allocate large amounts of memory (e.g.
+	// TestLeakDetector_VeryLargeAllocationTracking allocates 50 MB,
+	// TestMemoryMonitor_AlertCallback*), those allocations inflated the live
+	// process heap during this detector's observation window. If this
+	// detector's baseline was additionally captured at a low-heap instant
+	// (right after a GC, ~1.5 MB), the resulting ratio exceeded 100x even
+	// though *this detector's own workload* allocated nothing — a
+	// non-deterministic PASS/FAIL that depended on GC timing and the scheduling
+	// of unrelated parallel tests (a §11.4.50 determinism violation, HXC-054).
+	//
+	// Fix (root cause, not symptom): run serially so this detector's
+	// heap-growth window is not polluted by sibling tests' large allocations,
+	// and force a settled, deterministic baseline via runtime.GC() immediately
+	// before Start so the baseline is not a post-GC outlier. The detector's own
+	// non-allocating window then yields a ratio near 1.0x regardless of host
+	// scheduling. The assertion still verifies the real contract: with a 100x
+	// threshold, a detector that allocates nothing of its own MUST NOT report a
+	// heap-growth-driven false positive.
+
+	// Settle the heap so the baseline captured by Start() is deterministic and
+	// not a transient post-GC trough relative to a later-inflated live heap.
+	runtime.GC()
+	runtime.GC()
 
 	// Use a very high threshold so normal memory fluctuations do not trigger
 	// the heap growth check. Note: GoroutineGrowthRate is unpredictable in
@@ -64,9 +91,13 @@ func TestLeakDetector_FalsePositive_HeapOnly(t *testing.T) {
 	report := d.GetReport()
 	d.Stop()
 
-	// With 100x threshold, heap growth alone should not trigger
+	// With 100x threshold, a detector observing its own non-allocating window
+	// must not register a heap-growth-driven leak. The PotentialLeak flag is
+	// the detector's documented semantic output; assert it is not raised by the
+	// heap-growth path (the goroutine-growth path is asserted elsewhere and is
+	// not what this "heap only" false-positive test targets).
 	assert.Less(t, report.HeapGrowthRatio, 100.0,
-		"heap growth ratio should stay under 100x threshold in normal conditions")
+		"heap growth ratio should stay under 100x threshold for a non-allocating detector")
 }
 
 func TestLeakDetector_TrackingAfterReset(t *testing.T) {
