@@ -255,18 +255,18 @@ go test ./... -short             # Unit tests only
 go test -bench=. ./...           # Benchmarks
 ```
 
-## Integration with HelixAgent
+## Integration with the consuming project
 
-The Memory module is the primary memory system for HelixAgent:
+The Memory module is the primary memory system for the consuming project:
 - Mem0 Manager provides the default memory backend for debate sessions and user preferences
 - Entity extraction feeds the knowledge graph during debate orchestration
 - Knowledge graph enables semantic relationship traversal for context enrichment
 - Memory scoping separates user, session, conversation, and global contexts
 - Consolidation automatically merges redundant memories to prevent bloat
 - Time-based decay ensures recent memories are prioritized over stale ones
-- Leak detection monitors HelixAgent's runtime memory health
+- Leak detection monitors the consuming project's runtime memory health
 
-The internal adapter at `internal/adapters/memory/` bridges these generic types to HelixAgent-specific interfaces. HelixMemory (the higher-level cognitive memory engine) orchestrates this module alongside Cognee, Letta, and Graphiti.
+The internal adapter at `internal/adapters/memory/` bridges these generic types to the consuming project's interfaces. HelixMemory (the higher-level cognitive memory engine) orchestrates this module alongside Cognee, Letta, and Graphiti.
 
 ## Anti-bluff guarantees (round-247)
 
