@@ -20,7 +20,7 @@ Canonical reference: https://github.com/HelixDevelopment/HelixConstitution
 > agent dispatch, any CI configuration, any code review that allows
 > green tests on broken features is a violation and MUST be rejected.
 
-> **Constitution v2.3.0**: [Read the Constitution](https://github.com/HelixDevelopment/HelixPlay/blob/main/docs/research/chapters/MVP/05_Response/01_Constitution.md)
+> **Constitution**: governed by the Helix Constitution — locate via `find_constitution.sh` (https://github.com/HelixDevelopment/HelixConstitution)
 > All rules in Constitution §1-§21 are MANDATORY. No exception.
 >
 > **Amendments (2026-05-02):**
@@ -47,10 +47,6 @@ Canonical reference: https://github.com/HelixDevelopment/HelixConstitution
 > - Performance SLAs codified in §19 — <=30ms LAN, <=50ms WAN at p999.
 > - Technology Stack codified in §20 — mandatory technology choices.
 > - Implementation Roadmap codified in §21 — 14 phases (P00–P13).
-
-## Project Context
-This submodule is part of the parent project's system.
-See the [feature spec](https://github.com/HelixDevelopment/HelixPlay/blob/001-helixplay-system/specs/001-helixplay-system/spec.md).
 
 ## Submodule-Specific Notes
 <!-- Add submodule-specific AI agent guidance here -->
