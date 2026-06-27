@@ -11,14 +11,15 @@ import (
 )
 
 type LeakDetector struct {
-	mu             sync.Mutex
-	wg             sync.WaitGroup
-	baselineStats  runtime.MemStats
-	samples        []runtime.MemStats
-	interval       time.Duration
-	thresholdRatio float64
-	stopCh         chan struct{}
-	running        bool
+	mu                sync.Mutex
+	wg                sync.WaitGroup
+	baselineStats     runtime.MemStats
+	samples           []runtime.MemStats
+	interval          time.Duration
+	thresholdRatio    float64
+	stopCh            chan struct{}
+	running           bool
+	initialGoroutines int
 }
 
 type LeakReport struct {
@@ -55,6 +56,7 @@ func (d *LeakDetector) Start(ctx context.Context) error {
 
 	runtime.ReadMemStats(&d.baselineStats)
 	d.samples = append(d.samples, d.baselineStats)
+	d.initialGoroutines = runtime.NumGoroutine()
 	d.running = true
 	d.stopCh = make(chan struct{})
 
@@ -119,11 +121,6 @@ func (d *LeakDetector) GetReport() LeakReport {
 	var stats runtime.MemStats
 	runtime.ReadMemStats(&stats)
 
-	initialGoroutines := runtime.NumGoroutine()
-	if len(d.samples) > 0 {
-		initialGoroutines = int(d.samples[0].NumGC) + 1
-	}
-
 	heapGrowthRatio := 0.0
 	if d.baselineStats.HeapAlloc > 0 {
 		heapGrowthRatio = float64(stats.HeapAlloc) / float64(d.baselineStats.HeapAlloc)
@@ -131,10 +128,14 @@ func (d *LeakDetector) GetReport() LeakReport {
 
 	currentGoroutines := runtime.NumGoroutine()
 	goroutineGrowthRate := 0.0
-	if initialGoroutines > 0 {
-		goroutineGrowthRate = float64(currentGoroutines-initialGoroutines) / float64(initialGoroutines)
+	if d.initialGoroutines > 0 {
+		goroutineGrowthRate = float64(currentGoroutines-d.initialGoroutines) / float64(d.initialGoroutines)
 	}
 
+	// BUGFIX: initialGoroutines is now stored on the struct at Start() time
+	// instead of being derived from samples[0].NumGC (GC cycle counter, ~4),
+	// which caused false-positive goroutine-growth alerts when the server
+	// started with ~4 goroutines and settled at ~29.
 	potentialLeak := heapGrowthRatio > d.thresholdRatio || goroutineGrowthRate > 0.5
 
 	return LeakReport{
@@ -149,7 +150,7 @@ func (d *LeakDetector) GetReport() LeakReport {
 		HeapGrowthRatio:     heapGrowthRatio,
 		PotentialLeak:       potentialLeak,
 		GoroutineGrowthRate: goroutineGrowthRate,
-		InitialGoroutines:   initialGoroutines,
+		InitialGoroutines:   d.initialGoroutines,
 	}
 }
 
